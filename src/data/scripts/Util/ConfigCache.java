@@ -3,9 +3,12 @@ package data.scripts.Util;
 import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.combat.ShipHullSpecAPI;
 import com.fs.starfarer.api.combat.WeaponAPI;
+import com.fs.starfarer.api.loading.WeaponSlotAPI;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.*;
 
 // A cache for retrieving config data that isn't API exposed and must be fetched manually
@@ -17,8 +20,6 @@ public class ConfigCache
     private Map<String, HullData> shipCache = new HashMap<>();
     private Map<String, HullStyleData> hullStyleCache = new HashMap<>();
     private Map<String, WeaponData> weaponCache = new HashMap<>();
-
-    private Map<String, String> hullFileLookup = new HashMap<>();
 
     HullData defaultHullData;
     HullStyleData defaultHullStyleData;
@@ -38,34 +39,9 @@ public class ConfigCache
                 "graphics/damage/damage_decal_sheet_glow.png");
 
         defaultWeaponData = new WeaponData(false);
-
-        LoadHullIdSpecialCase();
     }
 
     // Hull Config ************************************************
-    // Fix any issues where the ship file name is different from the HullId
-    void LoadHullIdSpecialCase()
-    {
-        try
-        {
-            JSONObject obj = Global.getSettings().getMergedJSON("data/config/hullIdToHullFiles.json");
-
-            Iterator keys = obj.keys();
-            while(keys.hasNext())
-            {
-                Object key = keys.next();
-                String value = obj.getString(key.toString());
-                hullFileLookup.put(key.toString(), value);
-            }
-        }
-        catch (Exception e) { }
-    }
-    String CheckHullIdSpecialCases(String hullId)
-    {
-        String fileName = hullFileLookup.get(hullId);
-        return fileName != null ? fileName : hullId;
-    }
-
     HullData LoadHullConfig(ShipHullSpecAPI hullSpec)
     {
         float centerX = 0f;
@@ -74,9 +50,8 @@ public class ConfigCache
         float collisionRadius = 0f;
 
         try {
-            String checkedId = CheckHullIdSpecialCases(hullSpec.getHullId());
-
-            JSONObject obj = Global.getSettings().loadJSON("data/hulls/" + checkedId + ".ship", true);
+            Path path = Paths.get(hullSpec.getShipFilePath());
+            JSONObject obj = Global.getSettings().loadJSON("data/hulls/" + path.getFileName(), true);
             JSONArray center = obj.getJSONArray("center");
             if (center != null) {
                 for (int i = 0; i < center.length(); i++) {
@@ -107,7 +82,21 @@ public class ConfigCache
     {
         HullData data = shipCache.get(hullSpec.getHullId());
         if(data == null)
+        {
             data = LoadHullConfig(hullSpec);
+
+            // Pre-compute if the ship has modules or not.
+            data.hasModules = false;
+            List<WeaponSlotAPI> allWeaponSlots = hullSpec.getAllWeaponSlotsCopy();
+            for(WeaponSlotAPI slot: allWeaponSlots)
+            {
+                if(slot.isStationModule())
+                {
+                    data.hasModules = true;
+                    break;
+                }
+            }
+        }
 
         return data;
     }
@@ -173,13 +162,16 @@ public class ConfigCache
         boolean renderBarrelBelow = false;
         try {
             JSONObject obj = Global.getSettings().loadJSON("data/weapons/" + weaponId + ".wpn", true);
-            JSONArray hints = obj.getJSONArray("renderHints");
-            if (hints != null)
+            if(obj.has("renderHints"))
             {
-                for (int i = 0; i < hints.length(); i++)
+                JSONArray hints = obj.getJSONArray("renderHints");
+                if (hints != null)
                 {
-                    if(hints.getString(i).equalsIgnoreCase("RENDER_BARREL_BELOW"))
-                        renderBarrelBelow = true;
+                    for (int i = 0; i < hints.length(); i++)
+                    {
+                        if(hints.getString(i).equalsIgnoreCase("RENDER_BARREL_BELOW"))
+                            renderBarrelBelow = true;
+                    }
                 }
             }
 
@@ -211,6 +203,7 @@ public class ConfigCache
         public float centerY;
         public String hullStyle;
         public float collisionRadius;
+        public boolean hasModules = false;
 
         public HullData(float centerX, float centerY, String hullStyle, float collisionRadius)
         {

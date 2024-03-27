@@ -484,6 +484,10 @@ public class BackgroundShipSpawner
         if(hullData == null)
             return null;
 
+        // Don't currently support module based ships, skip generation.
+        if(hullData.hasModules)
+            return null;
+
         ConfigCache.HullStyleData hullStyleData = cache.GetHullStyleData(hullData.hullStyle);
 
         BackgroundEntity ship = new BackgroundEntity(shipVariant.getHullSpec().getSpriteName(), new Vector2f(xPos, yPos), hullData.centerX, hullData.centerY, facing, angularVelocity);

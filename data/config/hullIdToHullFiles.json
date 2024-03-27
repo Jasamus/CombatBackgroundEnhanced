@@ -1,5 +1,0 @@
-{
-	# Handles fixing any cases where the hullId doesn't match the hull.ship file name when getting ship configs
-	
-	"buffalo2":"buffalo_mk2"
-}
