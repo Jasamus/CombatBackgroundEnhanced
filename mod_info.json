@@ -1,0 +1,13 @@
+{
+    "id":"CombatBackgroundEnhanced",
+	"name":"Combat Background Enhanced", 
+	"author":"Jasamus",
+	"version":"0.1",
+	"description":"Adds procedurally generated backgrounds of ships and asteroid fields to give more interested battlefields.",
+    "gameVersion": "0.97a-RC11", 
+  	"jars":["jars/CombatBackgroundEnhanced.jar"],
+  	"modPlugin":"data.scripts.CombatBackgroundEnhanced_modPlugin",
+	  	"dependencies": [
+
+    ],
+}

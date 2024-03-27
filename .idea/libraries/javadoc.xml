@@ -1,0 +1,9 @@
+<component name="libraryTable">
+  <library name="javadoc">
+    <CLASSES />
+    <JAVADOC>
+      <root url="jar://$PROJECT_DIR$/../LazyLib/javadoc.zip!/" />
+    </JAVADOC>
+    <SOURCES />
+  </library>
+</component>

@@ -1,0 +1,21 @@
+{
+
+  "masterVersionFile": "https://raw.githubusercontent.com/jasamus/CombatBackgroundEnhanced/master/CombatBackgroundEnhanced.version",
+
+  "modName": "Combat Background Enhanced",
+
+  "modVersion":
+    {
+      "major": 0,
+      "minor": 1,
+      "patch": 0 # Can be a number, character or string (1, 2, a, b, "-RC2", etc)
+    },
+
+  "modThreadId": 0, # eg 8181
+
+  #"directDownloadURL": "https://github.com/MagicLibStarsector/MagicLib/releases/download/1.0.0/MagicLib-1.0.0.zip",
+  "directDownloadURL": "",
+
+  #"changelogURL": "https://raw.githubusercontent.com/MagicLibStarsector/MagicLib/master/CHANGELOGS.md",
+  "changelogURL": "",
+}

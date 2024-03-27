@@ -1,0 +1,42 @@
+{
+	"plugins": {
+		"CombatBackgroundTerrain": "data.scripts.CombatBackgroundTerrain",
+		#"CombatTerrainSpawner": "data.scripts.CombatTerrainSpawner",
+	},
+    "graphics":{
+		"CombatBackgroundTerrain":{
+			"error_sprite":"graphics/ui/icons/64x_power_circle.png",
+			"asteroid_small1":"graphics/asteroids/asteroid1.png",
+			"asteroid_small2":"graphics/asteroids/asteroid2.png",
+			"asteroid_small3":"graphics/asteroids/asteroid_small3.png",
+			"asteroid_medium1":"graphics/asteroids/asteroid4.png",
+			"asteroid_medium2":"graphics/asteroids/asteroid_medium2.png",
+			"asteroid_medium3":"graphics/asteroids/asteroid_medium3.png",
+			"asteroid_medium4":"graphics/asteroids/asteroid_medium4.png",
+			"asteroid_large1":"graphics/asteroids/asteroid_large1.png",
+			"asteroid_large2":"graphics/asteroids/asteroid_large2.png",
+			"asteroid_large3":"graphics/asteroids/asteroid_large3.png",
+			"asteroid_large4":"graphics/asteroids/asteroid_large4.png",
+			
+			"ship_debris_small1": "graphics/shipdebris/ship_debris_small1.png",
+			"ship_debris_small2": "graphics/shipdebris/ship_debris_small2.png",
+			"ship_debris_small3": "graphics/shipdebris/ship_debris_small3.png",
+			"ship_debris_small4": "graphics/shipdebris/ship_debris_small4.png",
+			"ship_debris_small5": "graphics/shipdebris/ship_debris_small5.png",
+			"ship_debris_small6": "graphics/shipdebris/ship_debris_small6.png",
+			"ship_debris_large1": "graphics/shipdebris/ship_debris_large1.png",
+			"ship_debris_large2": "graphics/shipdebris/ship_debris_large2.png",
+			"ship_debris_large3": "graphics/shipdebris/ship_debris_large3.png",
+			"ship_debris_large4": "graphics/shipdebris/ship_debris_large4.png",
+			"ship_debris_breach1": "graphics/shipdebris/ship_debris_breach1.png",
+			"ship_debris_breach2": "graphics/shipdebris/ship_debris_breach2.png",
+			"ship_debris_breach3": "graphics/shipdebris/ship_debris_breach3.png",
+			
+			"ship_breach_small1": "graphics/shipdebris/ship_breach_small1.png",
+			"ship_breach_small2": "graphics/shipdebris/ship_breach_small2.png",
+			
+			"ship_breach_large1": "graphics/shipdebris/ship_breach_large1.png",
+			"ship_breach_large2": "graphics/shipdebris/ship_breach_large2.png"
+		}
+	}
+}
