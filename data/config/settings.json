@@ -1,7 +1,6 @@
 {
 	"plugins": {
 		"CombatBackgroundTerrain": "data.scripts.CombatBackgroundTerrain",
-		#"CombatTerrainSpawner": "data.scripts.CombatTerrainSpawner",
 	},
     "graphics":{
 		"CombatBackgroundTerrain":{
