@@ -12,6 +12,9 @@ public class CombatBackground
 {
     private List<CombatBackgroundLayer> backgroundLayers = new ArrayList<>();
 
+    float minBrightness = 0.20f;
+    float maxBrightness = 0.46f;
+
     final float parallaxMinOffset = 0.92f;
     final float parallaxMaxOffset = 0.74f;
 
@@ -20,22 +23,27 @@ public class CombatBackground
 
     public CombatBackground()
     {
-        backgroundLayers.add(new CombatBackgroundLayer(new Color(0.15f, 0.15f,0.15f),
+        float brightness = minBrightness;
+        backgroundLayers.add(new CombatBackgroundLayer(new Color(brightness, brightness,brightness),
                 parallaxMaxOffset, scaleMax));
 
-        backgroundLayers.add(new CombatBackgroundLayer(new Color(0.22f, 0.22f,0.22f),
+        brightness = GenMath.Lerp(maxBrightness, minBrightness, 0.75f);
+        backgroundLayers.add(new CombatBackgroundLayer(new Color(brightness, brightness,brightness),
                 GenMath.Lerp(parallaxMinOffset, parallaxMaxOffset, 0.75f),
                 GenMath.Lerp(scaleMin, scaleMax, 0.75f)));
 
-        backgroundLayers.add(new CombatBackgroundLayer(new Color(0.30f, 0.30f,0.30f),
+        brightness = GenMath.Lerp(maxBrightness, minBrightness, 0.5f);
+        backgroundLayers.add(new CombatBackgroundLayer(new Color(brightness, brightness,brightness),
                 GenMath.Lerp(parallaxMinOffset, parallaxMaxOffset, 0.50f),
                 GenMath.Lerp(scaleMin, scaleMax, 0.5f)));
 
-        backgroundLayers.add(new CombatBackgroundLayer(new Color(0.36f, 0.36f,0.36f),
+        brightness = GenMath.Lerp(maxBrightness, minBrightness, 0.25f);
+        backgroundLayers.add(new CombatBackgroundLayer(new Color(brightness, brightness,brightness),
                 GenMath.Lerp(parallaxMinOffset, parallaxMaxOffset, 0.25f),
                 GenMath.Lerp(scaleMin, scaleMax, 0.25f)));
 
-        backgroundLayers.add(new CombatBackgroundLayer(new Color(0.42f, 0.42f,0.42f),
+        brightness = maxBrightness;
+        backgroundLayers.add(new CombatBackgroundLayer(new Color(brightness, brightness,brightness),
                 parallaxMinOffset, scaleMin));
     }
 
