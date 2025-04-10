@@ -4,10 +4,14 @@
 	"author":"Jasamus",
 	"version":"0.1",
 	"description":"Adds procedurally generated backgrounds of ships and asteroid fields to give more interested battlefields.",
-    "gameVersion": "0.97a-RC11", 
+    "gameVersion": "0.98a-RC7",
   	"jars":["jars/CombatBackgroundEnhanced.jar"],
   	"modPlugin":"data.scripts.CombatBackgroundEnhanced_modPlugin",
 	  	"dependencies": [
-
+        {
+            "id": "lw_lazylib",
+            "name": "LazyLib",
+            "version": "3.0.0"
+        },
     ],
 }
