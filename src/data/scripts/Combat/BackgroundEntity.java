@@ -3,6 +3,7 @@ package data.scripts.Combat;
 import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.combat.ViewportAPI;
 import com.fs.starfarer.api.graphics.SpriteAPI;
+import org.json.JSONObject;
 import org.lazywizard.lazylib.VectorUtils;
 import org.lwjgl.util.vector.Vector2f;
 
@@ -16,6 +17,13 @@ import static org.lwjgl.opengl.GL11.GL_REPLACE;
 
 public class BackgroundEntity
 {
+    private static boolean bSkipStencil = false;
+
+    public static void ReloadSettings(JSONObject options)
+    {
+        bSkipStencil = options.optBoolean("SkipStencil", false);
+    }
+
     SpriteAPI sprite;
     Vector2f location;
     float size;
@@ -211,6 +219,8 @@ public class BackgroundEntity
         scaledLocation.scale(parallaxScale);
         scaledLocation.translate(viewPos.x, viewPos.y);
 
+        boolean useStencil = !bSkipStencil && !overlayEntities.isEmpty();
+
         if (!view.isNearViewport(scaledLocation, size + 100f))
             return;
 
@@ -218,7 +228,9 @@ public class BackgroundEntity
 
         sprite.setAngle(frameFacing);
 
-        SetupStencil();
+        if(useStencil)
+            SetupStencil();
+
         sprite.renderAtCenter(scaledLocation.x, scaledLocation.y);
 
         for (BackgroundEntityChild childEntity : childEntities)
@@ -226,14 +238,16 @@ public class BackgroundEntity
             childEntity.Render(scaledLocation, frameFacing);
         }
 
-        EnableStencil();
+        if(useStencil)
+            EnableStencil();
 
         for(BackgroundEntityChild overlayEntity : overlayEntities)
         {
             overlayEntity.Render(scaledLocation, frameFacing);
         }
 
-        DisableStencil();
+        if(useStencil)
+            DisableStencil();
     }
 
     void SetupStencil()

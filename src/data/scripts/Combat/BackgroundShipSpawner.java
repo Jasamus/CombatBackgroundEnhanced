@@ -11,6 +11,7 @@ import com.fs.starfarer.api.loading.WeaponSpecAPI;
 import com.fs.starfarer.api.util.Misc;
 import data.scripts.Util.ConfigCache;
 import data.scripts.Util.GenMath;
+import org.json.JSONObject;
 import org.lwjgl.util.vector.Vector2f;
 
 import java.util.ArrayList;
@@ -19,6 +20,15 @@ import java.util.List;
 import java.util.Random;
 public class BackgroundShipSpawner
 {
+    private static boolean bUseShipDamageDecals = true;
+    private static boolean bGenerateShipDebris = true;
+
+    public static void ReloadSettings(JSONObject options)
+    {
+        bUseShipDamageDecals = options.optBoolean("ShipDamageDecals", true);
+        bGenerateShipDebris = options.optBoolean("ShipDebris", true);
+    }
+
     CombatBackground background;
     Random ran;
 
@@ -29,7 +39,6 @@ public class BackgroundShipSpawner
 
         InitDebrisGroups();
     }
-
 
     final float DEBRIS_DENSITY_MIN = 35f;
     final float DEBRIS_DENSITY_MAX = 35f;
@@ -79,6 +88,9 @@ public class BackgroundShipSpawner
 
     void GenerateDebrisRing(int layerIndex, float xPos, float yPos, float minAngularVelocity, float maxAngularVelocity, float minRadius, float maxRadius, float minVariance, float maxVariance, float densityScale)
     {
+        if(!bGenerateShipDebris)
+            return;
+
         float facing = GenMath.RandFacing();
 
         Vector2f forward = Misc.getUnitVectorAtDegreeAngle(facing);
@@ -172,8 +184,11 @@ public class BackgroundShipSpawner
             hullSpec = hullSpec.getBaseHull();
         }
 
-        ApplySurfaceDamage(ship, hullSpec);
-        //ApplyMajorDamage(layerIndex, ship, hullSpec);
+        if(bUseShipDamageDecals)
+        {
+            ApplySurfaceDamage(ship, hullSpec);
+            //ApplyMajorDamage(layerIndex, ship, hullSpec);
+        }
 
         return ship;
     }

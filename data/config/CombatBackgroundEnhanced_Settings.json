@@ -1,0 +1,8 @@
+{
+	"PerfSettings":
+	{
+		"SkipStencil": false, # Stencils are used to draw damage decals on ships but are expensive. Disable to reduce performance but will ship damage to extend past the ship edge.
+		"ShipDamageDecals": true, # Damage decals on the ships.
+		"ShipDebris": true # Floating debris around the ships 
+	}
+}
