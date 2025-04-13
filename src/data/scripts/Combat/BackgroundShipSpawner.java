@@ -506,9 +506,6 @@ public class BackgroundShipSpawner
         BackgroundEntity ship = new BackgroundEntity(hullSpec.getSpriteName(), new Vector2f(xPos, yPos), hullData.centerX, hullData.centerY, facing, angularVelocity);
         layer.AddEntity(ship);
 
-        // Add Weapons
-        AddWeapons(shipVariant, skipWeapons, hullSpec, ship, hullStyleData, 0f, 0f, 0f);
-
         List<String> moduleSlots = shipVariant.getModuleSlots();
 
         // Module based ship setup
@@ -540,6 +537,9 @@ public class BackgroundShipSpawner
             // Add module's weapons sprites
             AddWeapons(moduleVariant, skipWeapons, moduleHullSpec, ship, moduleStyleData, weaponOffset.x, weaponOffset.y, moduleSlot.getAngle());
         }
+
+        // Add Weapons. Do this after modules to make sure these weapons render on top of the module ship sprites.
+        AddWeapons(shipVariant, skipWeapons, hullSpec, ship, hullStyleData, 0f, 0f, 0f);
 
         return ship;
     }
