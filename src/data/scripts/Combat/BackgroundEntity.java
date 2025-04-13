@@ -3,11 +3,9 @@ package data.scripts.Combat;
 import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.combat.ViewportAPI;
 import com.fs.starfarer.api.graphics.SpriteAPI;
+import data.scripts.Util.GenMath;
 import org.json.JSONObject;
-import org.lazywizard.lazylib.VectorUtils;
-import org.lwjgl.Sys;
 import org.lwjgl.util.vector.Vector2f;
-
 import java.awt.Color;
 import java.util.ArrayList;
 import java.util.List;
@@ -122,7 +120,7 @@ public class BackgroundEntity
         {
             Vector2f rotOffset = new Vector2f(offset);
 
-            VectorUtils.rotate(offset, parentFacing, rotOffset);
+            GenMath.VecRotate(rotOffset, parentFacing);
 
             sprite.setAngle(parentFacing + facing);
             sprite.renderAtCenter(parentPos.x + rotOffset.x, parentPos.y + rotOffset.y);
