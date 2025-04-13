@@ -568,7 +568,7 @@ public class BackgroundShipSpawner
         for(WeaponSlotAPI slot : allWeaponSlots)
         {
             // Skip non-weapon slots.
-            if(!slot.isWeaponSlot())
+            if(!slot.isWeaponSlot() && !slot.isBuiltIn())
                 continue;
 
             String slotId = slot.getId();
@@ -585,7 +585,7 @@ public class BackgroundShipSpawner
             float slotAngle = slot.getAngle() + rotationOffset;
 
             // Empty slot, add a cover for it.
-            if(skipWeapons || !fittedWeaponSlots.contains(slotId))
+            if(skipWeapons || (!slot.isBuiltIn() && !fittedWeaponSlots.contains(slotId)))
             {
                 if(slot.isHardpoint())
                     ship.AddChildSprite(hullStyleData.GetHardpointcover(slot.getSlotSize()), slotPos, slotAngle, 0.5f,0.25f);
@@ -625,7 +625,8 @@ public class BackgroundShipSpawner
                 {
                     ship.AddChildSprite(weaponSpec.getTurretSpriteName(), slotPos, slotAngle + angleOffset);
                 }
-                if(weaponSpec instanceof ProjectileWeaponSpecAPI projectileWeaponSpecAPI) {
+                if(weaponSpec instanceof ProjectileWeaponSpecAPI projectileWeaponSpecAPI)
+                {
                     ship.AddChildSprite(projectileWeaponSpecAPI.getTurretGunSpriteName(), slotPos, slotAngle + angleOffset);
                 }
 
