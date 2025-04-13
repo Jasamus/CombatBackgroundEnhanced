@@ -66,10 +66,17 @@ public class CombatBackgroundTerrain extends BaseEveryFrameCombatPlugin
     {
         //System.out.println("!! Map Width: " + mapWidth + ", Map Height: " + mapHeight);
 
-//        ShipVariantAPI variant1 = Global.getSettings().getVariant("buffalo2_FS");
-//        shipSpawner.GenerateHulk(0,variant1, 0f, 0f, 0f, 0f, false);
+//        ShipVariantAPI variant1 = Global.getSettings().getVariant("swp_cathedral_for");
+//        shipSpawner.GenerateHulk(0,variant1, 000f, 0f, ran.nextFloat() * 360f, 10f, false);
+//
+//        ShipVariantAPI variant2 = Global.getSettings().getVariant("onslaught_mk1_Ancient");
+//        shipSpawner.GenerateHulk(0,variant2, 800f, 0f, ran.nextFloat() * 360f, 0f, false);
+//
+//        ShipVariantAPI variant3 = Global.getSettings().getVariant("station3_hightech_Standard");
+//        shipSpawner.GenerateHulk(0,variant3, -800f, 0f, ran.nextFloat() * 360f, 0f, false);
+
 //        ShipVariantAPI variant2 = Global.getSettings().getVariant("buffalo2_Fighter_Support");
-//        shipSpawner.GenerateHulk(0,variant2, 200f, 0f, 0f, 0f, false);
+//        shipSpawner.GenerateHulk(0,variant2, 0f, 0f, 0f, 0f, false);
 
         // Spawn Inner Ring
         int innerCount = ran.nextInt(1) + 2;

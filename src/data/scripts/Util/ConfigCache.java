@@ -82,21 +82,7 @@ public class ConfigCache
     {
         HullData data = shipCache.get(hullSpec.getHullId());
         if(data == null)
-        {
             data = LoadHullConfig(hullSpec);
-
-            // Pre-compute if the ship has modules or not.
-            data.hasModules = false;
-            List<WeaponSlotAPI> allWeaponSlots = hullSpec.getAllWeaponSlotsCopy();
-            for(WeaponSlotAPI slot: allWeaponSlots)
-            {
-                if(slot.isStationModule())
-                {
-                    data.hasModules = true;
-                    break;
-                }
-            }
-        }
 
         return data;
     }
@@ -203,7 +189,6 @@ public class ConfigCache
         public float centerY;
         public String hullStyle;
         public float collisionRadius;
-        public boolean hasModules = false;
 
         public HullData(float centerX, float centerY, String hullStyle, float collisionRadius)
         {

@@ -10,6 +10,7 @@ import com.fs.starfarer.api.loading.WeaponSlotAPI;
 import com.fs.starfarer.api.loading.WeaponSpecAPI;
 import com.fs.starfarer.api.util.Misc;
 import data.scripts.Util.ConfigCache;
+import data.scripts.Util.ConfigCache.HullStyleData;
 import data.scripts.Util.GenMath;
 import org.json.JSONObject;
 import org.lwjgl.util.vector.Vector2f;
@@ -499,14 +500,67 @@ public class BackgroundShipSpawner
         if(hullData == null)
             return null;
 
-        // Don't currently support module based ships, skip generation.
-        if(hullData.hasModules)
-            return null;
-
         ConfigCache.HullStyleData hullStyleData = cache.GetHullStyleData(hullData.hullStyle);
 
-        BackgroundEntity ship = new BackgroundEntity(shipVariant.getHullSpec().getSpriteName(), new Vector2f(xPos, yPos), hullData.centerX, hullData.centerY, facing, angularVelocity);
+        // Base Ship
+        BackgroundEntity ship = new BackgroundEntity(hullSpec.getSpriteName(), new Vector2f(xPos, yPos), hullData.centerX, hullData.centerY, facing, angularVelocity);
         layer.AddEntity(ship);
+
+        // Add Weapons
+        AddWeapons(shipVariant, skipWeapons, hullSpec, ship, hullStyleData, 0f, 0f, 0f);
+
+        List<String> moduleSlots = shipVariant.getModuleSlots();
+
+        // Module based ship setup
+        for(String slot : moduleSlots)
+        {
+            WeaponSlotAPI moduleSlot = hullSpec.getWeaponSlot(slot);
+            ShipVariantAPI moduleVariant = shipVariant.getModuleVariant(slot);
+            ShipHullSpecAPI moduleHullSpec = moduleVariant.getHullSpec();
+
+            ConfigCache.HullData moduleHullData = cache.GetHullData(moduleHullSpec);
+            if(moduleHullData == null)
+                continue;
+
+            ConfigCache.HullStyleData moduleStyleData = cache.GetHullStyleData(moduleHullData.hullStyle);
+
+            Vector2f slotPos = new Vector2f(moduleSlot.getLocation());
+            GenMath.VecRotate(slotPos, 90f);
+
+            // Add module sprite
+            Vector2f moduleCenter = new Vector2f(moduleHullData.centerX, moduleHullData.centerY);
+            // If it has the "vastbulk" built in module, render it underneath the main sprite.
+            if(ShouldModuleRenderUnder(moduleHullSpec))
+                ship.AddUnderSprite(moduleHullSpec.getSpriteName(), slotPos, moduleSlot.getAngle(), moduleCenter);
+            else
+                ship.AddChildSprite(moduleHullSpec.getSpriteName(), slotPos, moduleSlot.getAngle(), moduleCenter);
+
+            Vector2f weaponOffset = new Vector2f(moduleSlot.getLocation());
+
+            // Add module's weapons sprites
+            AddWeapons(moduleVariant, skipWeapons, moduleHullSpec, ship, moduleStyleData, weaponOffset.x, weaponOffset.y, moduleSlot.getAngle());
+        }
+
+        return ship;
+    }
+
+    private boolean ShouldModuleRenderUnder(ShipHullSpecAPI hullSpec)
+    {
+        List<String> builtInMods = hullSpec.getBuiltInMods();
+        for(String builtInMod : builtInMods)
+        {
+            if(builtInMod.equals("vastbulk"))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private void AddWeapons(ShipVariantAPI shipVariant, boolean skipWeapons, ShipHullSpecAPI hullSpec, BackgroundEntity ship, HullStyleData hullStyleData, float xOffset, float yOffset, float rotationOffset)
+    {
+        ConfigCache cache = ConfigCache.GetInstance();
 
         Collection<String> fittedWeaponSlots = shipVariant.getFittedWeaponSlots();
         List<WeaponSlotAPI> allWeaponSlots = hullSpec.getAllWeaponSlotsCopy();
@@ -523,15 +577,20 @@ public class BackgroundShipSpawner
             WeaponSpecAPI weaponSpec = Global.getSettings().getWeaponSpec(weaponId);
 
             Vector2f slotPos = new Vector2f(slot.getLocation());
+            GenMath.VecRotate(slotPos, rotationOffset);
+            slotPos.x += xOffset;
+            slotPos.y += yOffset;
             GenMath.VecRotate(slotPos, 90f);
+
+            float slotAngle = slot.getAngle() + rotationOffset;
 
             // Empty slot, add a cover for it.
             if(skipWeapons || !fittedWeaponSlots.contains(slotId))
             {
                 if(slot.isHardpoint())
-                    ship.AddChildSprite(hullStyleData.GetHardpointcover(slot.getSlotSize()), slotPos, slot.getAngle(), 0.5f,0.25f);
+                    ship.AddChildSprite(hullStyleData.GetHardpointcover(slot.getSlotSize()), slotPos, slotAngle, 0.5f,0.25f);
                 else
-                    ship.AddChildSprite(hullStyleData.GetTurretCover(slot.getSlotSize()), slotPos, slot.getAngle());
+                    ship.AddChildSprite(hullStyleData.GetTurretCover(slot.getSlotSize()), slotPos, slotAngle);
 
                 continue;
             }
@@ -542,18 +601,17 @@ public class BackgroundShipSpawner
             {
                 if(!weaponData.renderBarrelBelow)
                 {
-                    ship.AddChildSprite(weaponSpec.getHardpointSpriteName(), slotPos, slot.getAngle(), 0.5f,0.25f);
+                    ship.AddChildSprite(weaponSpec.getHardpointSpriteName(), slotPos, slotAngle, 0.5f,0.25f);
                 }
 
-                if(weaponSpec instanceof ProjectileWeaponSpecAPI)
+                if(weaponSpec instanceof ProjectileWeaponSpecAPI projectileWeaponSpecAPI)
                 {
-                    ProjectileWeaponSpecAPI projectileWeaponSpecAPI = (ProjectileWeaponSpecAPI) weaponSpec;
-                    ship.AddChildSprite(projectileWeaponSpecAPI.getHardpointGunSpriteName(), slotPos, slot.getAngle(), 0.5f,0.25f);
+                    ship.AddChildSprite(projectileWeaponSpecAPI.getHardpointGunSpriteName(), slotPos, slotAngle, 0.5f,0.25f);
                 }
 
                 if(weaponData.renderBarrelBelow)
                 {
-                    ship.AddChildSprite(weaponSpec.getHardpointSpriteName(), slotPos, slot.getAngle(), 0.5f,0.25f);
+                    ship.AddChildSprite(weaponSpec.getHardpointSpriteName(), slotPos, slotAngle, 0.5f,0.25f);
                 }
             }
             else
@@ -565,22 +623,19 @@ public class BackgroundShipSpawner
 
                 if(!weaponData.renderBarrelBelow)
                 {
-                    ship.AddChildSprite(weaponSpec.getTurretSpriteName(), slotPos, slot.getAngle() + angleOffset);
+                    ship.AddChildSprite(weaponSpec.getTurretSpriteName(), slotPos, slotAngle + angleOffset);
                 }
-                if(weaponSpec instanceof ProjectileWeaponSpecAPI) {
-                    ProjectileWeaponSpecAPI projectileWeaponSpecAPI = (ProjectileWeaponSpecAPI) weaponSpec;
-                    ship.AddChildSprite(projectileWeaponSpecAPI.getTurretGunSpriteName(), slotPos, slot.getAngle() + angleOffset);
+                if(weaponSpec instanceof ProjectileWeaponSpecAPI projectileWeaponSpecAPI) {
+                    ship.AddChildSprite(projectileWeaponSpecAPI.getTurretGunSpriteName(), slotPos, slotAngle + angleOffset);
                 }
 
                 if(weaponData.renderBarrelBelow)
                 {
-                    ship.AddChildSprite(weaponSpec.getTurretSpriteName(), slotPos, slot.getAngle() + angleOffset);
+                    ship.AddChildSprite(weaponSpec.getTurretSpriteName(), slotPos, slotAngle + angleOffset);
                 }
             }
 
         }
-
-        return ship;
     }
 
     final String DEBRIS_SPRITE_ERROR = "error_sprite";

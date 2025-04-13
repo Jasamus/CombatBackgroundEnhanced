@@ -5,6 +5,7 @@ import com.fs.starfarer.api.combat.ViewportAPI;
 import com.fs.starfarer.api.graphics.SpriteAPI;
 import org.json.JSONObject;
 import org.lazywizard.lazylib.VectorUtils;
+import org.lwjgl.Sys;
 import org.lwjgl.util.vector.Vector2f;
 
 import java.awt.Color;
@@ -32,6 +33,8 @@ public class BackgroundEntity
     Color color;
     float parallaxScale;
     float sizeScale;
+
+    List<BackgroundEntityChild> underEntities = new ArrayList<>();
     List<BackgroundEntityChild> childEntities = new ArrayList<>();
 
     List<BackgroundEntityChild> overlayEntities = new ArrayList<>();
@@ -72,6 +75,24 @@ public class BackgroundEntity
 
             sprite.setWidth(sprite.getWidth() * scale);
             sprite.setHeight(sprite.getHeight() * scale);
+
+            this.offset = new Vector2f(offset);
+            this.offset.scale(scale);
+            this.facing = facing;
+        }
+
+        public BackgroundEntityChild(String spriteName, Vector2f offset, float scale, float facing, Vector2f center)
+        {
+            sprite = Global.getSettings().getSprite(spriteName);
+
+            // Use the original sprite size
+            float centerX = center.x * scale;
+            float centerY = center.y * scale;
+
+            sprite.setWidth(sprite.getWidth() * scale);
+            sprite.setHeight(sprite.getHeight() * scale);
+
+            sprite.setCenter(centerX, centerY);
 
             this.offset = new Vector2f(offset);
             this.offset.scale(scale);
@@ -162,9 +183,23 @@ public class BackgroundEntity
         sprite.setCenter(sprite.getCenterX() * scale,sprite.getCenterY() * scale);
     }
 
+    public void AddUnderSprite(String spriteName, Vector2f offset, float facing,Vector2f center)
+    {
+        BackgroundEntityChild under = new BackgroundEntityChild(spriteName, offset, sizeScale, facing, center);
+        under.SetTint(color);
+        underEntities.add(under);
+    }
+
     public void AddChildSprite(String spriteName, Vector2f offset, float facing)
     {
         BackgroundEntityChild child = new BackgroundEntityChild(spriteName, offset, sizeScale, facing);
+        child.SetTint(color);
+        childEntities.add(child);
+    }
+
+    public void AddChildSprite(String spriteName, Vector2f offset, float facing, Vector2f center)
+    {
+        BackgroundEntityChild child = new BackgroundEntityChild(spriteName, offset, sizeScale, facing, center);
         child.SetTint(color);
         childEntities.add(child);
     }
@@ -226,8 +261,12 @@ public class BackgroundEntity
 
         float frameFacing = facing + (angularVelocity * time % 360f);
 
-        sprite.setAngle(frameFacing);
+        for(BackgroundEntityChild underEntity : underEntities)
+        {
+            underEntity.Render(scaledLocation, frameFacing);
+        }
 
+        sprite.setAngle(frameFacing);
         if(useStencil)
             SetupStencil();
 
