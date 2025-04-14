@@ -515,7 +515,10 @@ public class BackgroundShipSpawner
         {
             WeaponSlotAPI moduleSlot = hullSpec.getWeaponSlot(slot);
             ShipVariantAPI moduleVariant = shipVariant.getModuleVariant(slot);
+
             ShipHullSpecAPI moduleHullSpec = moduleVariant.getHullSpec();
+            if(!moduleHullSpec.isBaseHull())
+                moduleHullSpec = moduleHullSpec.getBaseHull();
 
             ConfigCache.HullData moduleHullData = cache.GetHullData(moduleHullSpec);
             if(moduleHullData == null)
