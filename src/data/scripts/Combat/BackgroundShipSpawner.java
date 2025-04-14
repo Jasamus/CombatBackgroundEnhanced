@@ -508,6 +508,8 @@ public class BackgroundShipSpawner
 
         List<String> moduleSlots = shipVariant.getModuleSlots();
 
+        boolean baseHasVastBulk = HasVastBulkBuiltInMod(hullSpec);
+
         // Module based ship setup
         for(String slot : moduleSlots)
         {
@@ -524,15 +526,27 @@ public class BackgroundShipSpawner
             Vector2f slotPos = new Vector2f(moduleSlot.getLocation());
             GenMath.VecRotate(slotPos, 90f);
 
-            // Add module sprite
             Vector2f moduleCenter = new Vector2f(moduleHullData.centerX, moduleHullData.centerY);
+            Vector2f weaponOffset = new Vector2f(moduleSlot.getLocation());
+
+            // If there is a module anchor offset, apply it.
+            if(moduleHullSpec.getModuleAnchor() != null)
+            {
+                Vector2f moduleAnchor = new Vector2f(moduleHullSpec.getModuleAnchor());
+                GenMath.VecRotate(moduleAnchor, moduleSlot.getAngle());
+
+                Vector2f.sub(weaponOffset, moduleAnchor, weaponOffset);
+
+                GenMath.VecRotate(moduleAnchor, 90f);
+                Vector2f.sub(slotPos, moduleAnchor, slotPos);
+            }
+
+            // Add module sprite
             // If it has the "vastbulk" built in module, render it underneath the main sprite.
-            if(ShouldModuleRenderUnder(moduleHullSpec))
+            if(HasVastBulkBuiltInMod(moduleHullSpec) && !baseHasVastBulk)
                 ship.AddUnderSprite(moduleHullSpec.getSpriteName(), slotPos, moduleSlot.getAngle(), moduleCenter);
             else
                 ship.AddChildSprite(moduleHullSpec.getSpriteName(), slotPos, moduleSlot.getAngle(), moduleCenter);
-
-            Vector2f weaponOffset = new Vector2f(moduleSlot.getLocation());
 
             // Add module's weapons sprites
             AddWeapons(moduleVariant, skipWeapons, moduleHullSpec, ship, moduleStyleData, weaponOffset.x, weaponOffset.y, moduleSlot.getAngle());
@@ -544,7 +558,7 @@ public class BackgroundShipSpawner
         return ship;
     }
 
-    private boolean ShouldModuleRenderUnder(ShipHullSpecAPI hullSpec)
+    private boolean HasVastBulkBuiltInMod(ShipHullSpecAPI hullSpec)
     {
         List<String> builtInMods = hullSpec.getBuiltInMods();
         for(String builtInMod : builtInMods)
