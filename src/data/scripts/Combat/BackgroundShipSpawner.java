@@ -510,6 +510,8 @@ public class BackgroundShipSpawner
 
         boolean baseHasVastBulk = CheckForBuiltInMod(hullSpec, "vastbulk");
 
+        float anchorRotationFacing = GenMath.RandFacing();
+
         // Module based ship setup
         for(String slot : moduleSlots)
         {
@@ -529,6 +531,13 @@ public class BackgroundShipSpawner
             Vector2f slotPos = new Vector2f(moduleSlot.getLocation());
             GenMath.VecRotate(slotPos, 90f);
 
+            float direction = moduleSlot.getAngle();
+            if(CheckForBuiltInMod(moduleHullSpec, "anchorrotation"))
+            {
+                GenMath.VecRotate(slotPos, anchorRotationFacing);
+                direction += anchorRotationFacing;
+            }
+
             Vector2f moduleCenter = new Vector2f(moduleHullData.centerX, moduleHullData.centerY);
             Vector2f weaponOffset = new Vector2f(moduleSlot.getLocation());
 
@@ -536,7 +545,7 @@ public class BackgroundShipSpawner
             if(moduleHullSpec.getModuleAnchor() != null)
             {
                 Vector2f moduleAnchor = new Vector2f(moduleHullSpec.getModuleAnchor());
-                GenMath.VecRotate(moduleAnchor, moduleSlot.getAngle());
+                GenMath.VecRotate(moduleAnchor, direction);
 
                 Vector2f.sub(weaponOffset, moduleAnchor, weaponOffset);
 
@@ -547,12 +556,12 @@ public class BackgroundShipSpawner
             // Add module sprite
             // If it has the "vastbulk" or "never_detaches" built in modules, render it underneath the main sprite.
             if((!baseHasVastBulk && CheckForBuiltInMod(moduleHullSpec, "vastbulk")) || CheckForBuiltInMod(moduleHullSpec, "never_detaches"))
-                ship.AddUnderSprite(moduleHullSpec.getSpriteName(), slotPos, moduleSlot.getAngle(), moduleCenter);
+                ship.AddUnderSprite(moduleHullSpec.getSpriteName(), slotPos, direction, moduleCenter);
             else
-                ship.AddChildSprite(moduleHullSpec.getSpriteName(), slotPos, moduleSlot.getAngle(), moduleCenter);
+                ship.AddChildSprite(moduleHullSpec.getSpriteName(), slotPos, direction, moduleCenter);
 
             // Add module's weapons sprites
-            AddWeapons(moduleVariant, skipWeapons, moduleHullSpec, ship, moduleStyleData, weaponOffset.x, weaponOffset.y, moduleSlot.getAngle());
+            AddWeapons(moduleVariant, skipWeapons, moduleHullSpec, ship, moduleStyleData, weaponOffset.x, weaponOffset.y, direction);
         }
 
         // Add Weapons. Do this after modules to make sure these weapons render on top of the module ship sprites.
