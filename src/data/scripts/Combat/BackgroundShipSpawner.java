@@ -508,7 +508,7 @@ public class BackgroundShipSpawner
 
         List<String> moduleSlots = shipVariant.getModuleSlots();
 
-        boolean baseHasVastBulk = HasVastBulkBuiltInMod(hullSpec);
+        boolean baseHasVastBulk = CheckForBuiltInMod(hullSpec, "vastbulk");
 
         // Module based ship setup
         for(String slot : moduleSlots)
@@ -542,8 +542,8 @@ public class BackgroundShipSpawner
             }
 
             // Add module sprite
-            // If it has the "vastbulk" built in module, render it underneath the main sprite.
-            if(HasVastBulkBuiltInMod(moduleHullSpec) && !baseHasVastBulk)
+            // If it has the "vastbulk" or "never_detaches" built in modules, render it underneath the main sprite.
+            if((!baseHasVastBulk && CheckForBuiltInMod(moduleHullSpec, "vastbulk")) || CheckForBuiltInMod(moduleHullSpec, "never_detaches"))
                 ship.AddUnderSprite(moduleHullSpec.getSpriteName(), slotPos, moduleSlot.getAngle(), moduleCenter);
             else
                 ship.AddChildSprite(moduleHullSpec.getSpriteName(), slotPos, moduleSlot.getAngle(), moduleCenter);
@@ -558,15 +558,13 @@ public class BackgroundShipSpawner
         return ship;
     }
 
-    private boolean HasVastBulkBuiltInMod(ShipHullSpecAPI hullSpec)
+    private boolean CheckForBuiltInMod(ShipHullSpecAPI hullSpec, String moduleName)
     {
         List<String> builtInMods = hullSpec.getBuiltInMods();
         for(String builtInMod : builtInMods)
         {
-            if(builtInMod.equals("vastbulk"))
-            {
+            if(builtInMod.equals(moduleName))
                 return true;
-            }
         }
 
         return false;
