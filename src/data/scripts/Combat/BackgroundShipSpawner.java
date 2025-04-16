@@ -51,6 +51,23 @@ public class BackgroundShipSpawner
         if(shipVariant == null)
             return;
 
+        CalculateHullCollision(shipVariant);
+
+        if(background.IsValidLayer(layerIndex-1))
+            GenerateDebrisRing(layerIndex-1, xPos, yPos, 3f, 8f,
+                    Math.max(collisionRadius - 100f, 0f), collisionRadius + 15f, 55f, 90f, 0.3f);
+
+        GenerateShip(layerIndex, shipVariant, xPos, yPos, facing, angularVelocity, skipWeapons, !bUseShipDamageDecals);
+        GenerateDebrisRing(layerIndex, xPos + collisionX, yPos + collisionY, 3f, 8f,
+                Math.max(collisionRadius - 75f, 25f), collisionRadius + 20f, 55f, 90f, 0.3f);
+
+        if(background.IsValidLayer(layerIndex + 1))
+            GenerateDebrisRing(layerIndex + 1, xPos + collisionX, yPos + collisionY, 3f, 8f,
+                    0f, Math.max(collisionRadius - 45f, 0f), 40f, 70f, 0.4f);
+    }
+
+    void CalculateHullCollision(ShipVariantAPI shipVariant)
+    {
         ShipHullSpecAPI hullSpec = shipVariant.getHullSpec();
         if(!hullSpec.isBaseHull())
         {
@@ -60,17 +77,83 @@ public class BackgroundShipSpawner
         ConfigCache cache = ConfigCache.GetInstance();
         ConfigCache.HullData hullData = cache.GetHullData(hullSpec);
 
-        if(background.IsValidLayer(layerIndex-1))
-            GenerateDebrisRing(layerIndex-1, xPos, yPos, 3f, 8f,
-                    Math.max(hullData.collisionRadius - 100f, 0f), hullData.collisionRadius + 15f, 55f, 90f, 0.3f);
+        SetCollisionValues(0f,0f,hullData.collisionRadius);
 
-        GenerateShip(layerIndex, shipVariant, xPos, yPos, facing, angularVelocity, skipWeapons, !bUseShipDamageDecals);
-        GenerateDebrisRing(layerIndex, xPos, yPos, 3f, 8f,
-                Math.max(hullData.collisionRadius - 75f, 25f), hullData.collisionRadius + 20f, 55f, 90f, 0.3f);
+        List<String> moduleSlots = shipVariant.getModuleSlots();
+        if(moduleSlots.isEmpty())
+            return;
 
-        if(background.IsValidLayer(layerIndex + 1))
-            GenerateDebrisRing(layerIndex + 1, xPos, yPos, 3f, 8f,
-                    0f, Math.max(hullData.collisionRadius - 45f, 0f), 40f, 70f, 0.4f);
+        // If uses modules, combine the various collision radius to create a collision circle.
+        for(String slot : moduleSlots)
+        {
+            WeaponSlotAPI moduleSlot = hullSpec.getWeaponSlot(slot);
+            ShipVariantAPI moduleVariant = shipVariant.getModuleVariant(slot);
+
+            ShipHullSpecAPI moduleHullSpec = moduleVariant.getHullSpec();
+            if(!moduleHullSpec.isBaseHull())
+                moduleHullSpec = moduleHullSpec.getBaseHull();
+
+            ConfigCache.HullData moduleHullData = cache.GetHullData(moduleHullSpec);
+            if(moduleHullData == null)
+                continue;
+
+            Vector2f slotPos = new Vector2f(moduleSlot.getLocation());
+            GenMath.VecRotate(slotPos, 90f);
+
+            float direction = moduleSlot.getAngle();
+
+            // If there is a module anchor offset, apply it.
+            if(moduleHullSpec.getModuleAnchor() != null)
+            {
+                Vector2f moduleAnchor = new Vector2f(moduleHullSpec.getModuleAnchor());
+                GenMath.VecRotate(moduleAnchor, direction);
+
+                GenMath.VecRotate(moduleAnchor, 90f);
+                Vector2f.sub(slotPos, moduleAnchor, slotPos);
+            }
+
+            CombineCollisions(slotPos.x, slotPos.y, moduleHullData.collisionRadius);
+
+        }
+    }
+
+    float collisionX;
+    float collisionY;
+    float collisionRadius;
+
+    void SetCollisionValues(float x, float y, float radius)
+    {
+        collisionX = x;
+        collisionY = y;
+        collisionRadius = radius;
+    }
+
+    void CombineCollisions(float x, float y, float r)
+    {
+        // If the new circle is larger, flip the data.
+        if(r > collisionRadius)
+            CombineCollisions(collisionX, collisionY, collisionRadius, x, y, r);
+        else
+            CombineCollisions(x, y, r, collisionX, collisionY, collisionRadius);
+    }
+
+    void CombineCollisions(float x1, float y1, float r1, float x2, float y2, float r2)
+    {
+        float dist = (float)Math.sqrt(Math.pow((x1 - x2), 2) + Math.pow((y1 - y2), 2));
+
+        // Circle1 is entirely inside Circle2
+        if(dist + r1 <= r2)
+            return;
+
+        float radius = (dist + r1 + r2)/2f;
+
+        float theta = 0.5f + (r2 - r1) / (dist * 2f);
+        float centerX = GenMath.Lerp(x1, x2, theta);
+        float centerY = GenMath.Lerp(y1, y2, theta);
+
+        collisionX = centerX;
+        collisionY = centerY;
+        collisionRadius = radius;
     }
 
     public void GenerateDebrisField(int layerIndex, float xPos, float yPos, float size, float density)
@@ -109,8 +192,7 @@ public class BackgroundShipSpawner
         int fieldCount = forwardCount * forwardCount;
 
         float minTest = minRadius / maxRadius;
-        minTest = minTest * minTest;
-        minTest /= 2f;
+        minTest /= 4f;
         for(int i = 0; i < fieldCount; i++)
         {
             int align = i / forwardCount;
