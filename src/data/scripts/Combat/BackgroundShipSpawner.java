@@ -64,7 +64,7 @@ public class BackgroundShipSpawner
             GenerateDebrisRing(layerIndex-1, xPos, yPos, 3f, 8f,
                     Math.max(hullData.collisionRadius - 100f, 0f), hullData.collisionRadius + 15f, 55f, 90f, 0.3f);
 
-        GenerateDamagedShip(layerIndex, shipVariant, xPos, yPos, facing, angularVelocity, skipWeapons);
+        GenerateShip(layerIndex, shipVariant, xPos, yPos, facing, angularVelocity, skipWeapons, !bUseShipDamageDecals);
         GenerateDebrisRing(layerIndex, xPos, yPos, 3f, 8f,
                 Math.max(hullData.collisionRadius - 75f, 25f), hullData.collisionRadius + 20f, 55f, 90f, 0.3f);
 
@@ -173,27 +173,6 @@ public class BackgroundShipSpawner
     //********************************************************************
     // Damaged Ship
     // Ship Generation with an additional pass using default damage decals.
-    public BackgroundEntity GenerateDamagedShip(int layerIndex, ShipVariantAPI shipVariant, float xPos, float yPos, float facing, float angularVelocity, boolean skipWeapons)
-    {
-        BackgroundEntity ship = GenerateShip(layerIndex, shipVariant, xPos, yPos, facing, angularVelocity, skipWeapons);
-        if(ship == null)
-            return null;
-
-        ShipHullSpecAPI hullSpec = shipVariant.getHullSpec();
-        if(!hullSpec.isBaseHull())
-        {
-            hullSpec = hullSpec.getBaseHull();
-        }
-
-        if(bUseShipDamageDecals)
-        {
-            ApplySurfaceDamage(ship, hullSpec);
-            //ApplyMajorDamage(layerIndex, ship, hullSpec);
-        }
-
-        return ship;
-    }
-
     void ApplyMajorDamage(int layerIndex, BackgroundEntity ship,  ShipHullSpecAPI hullSpec)
     {
         ConfigCache cache = ConfigCache.GetInstance();
@@ -323,11 +302,19 @@ public class BackgroundShipSpawner
 
     void ApplySurfaceDamage(BackgroundEntity ship, ShipHullSpecAPI hullSpec)
     {
+        ApplySurfaceDamage(ship, hullSpec, ship.GetSpriteSize(), 0f, 0f, 0f);
+    }
+
+    void ApplySurfaceDamage(BackgroundEntity ship, ShipHullSpecAPI hullSpec, Vector2f spriteSize, float xOffset, float yOffset, float rotation)
+    {
         ConfigCache cache = ConfigCache.GetInstance();
         ConfigCache.HullData hullData = cache.GetHullData(hullSpec);
         ConfigCache.HullStyleData hullStyleData = cache.GetHullStyleData(hullData.hullStyle);
 
-        Vector2f shipSize = ship.GetSpriteSize();
+        Vector2f shipSize = new Vector2f(spriteSize);
+        // Inverse the sizeScale so it gives "mostly" correct ship size data.
+        shipSize.x = shipSize.x / ship.sizeScale;
+        shipSize.y = shipSize.y / ship.sizeScale;
 
         // Armor Cell size
         // Ships 150 units or fewer: 15 units
@@ -374,8 +361,10 @@ public class BackgroundShipSpawner
                 {
                     float xDamagePos = armorSize * i;
                     float yDamagePos = armorSize * j;
+                    Vector2f damagePos = new Vector2f(xDamagePos + armorXOffset, yDamagePos + armorYOffset);
+                    GenMath.VecRotate(damagePos, rotation);
 
-                    AddHullDamageOverlay(ship, hullStyleData.damageDecalSheet, decalSize, damageStrength, xDamagePos + armorXOffset, yDamagePos + armorYOffset);
+                    AddHullDamageOverlay(ship, hullStyleData.damageDecalSheet, decalSize, damageStrength, damagePos.x + xOffset, damagePos.y + yOffset);
                 }
             }
         }
@@ -484,7 +473,7 @@ public class BackgroundShipSpawner
     // Ships
 
     // Variant that generates all mounted weapons and mount covers.
-    public BackgroundEntity GenerateShip(int layerIndex, ShipVariantAPI shipVariant, float xPos, float yPos, float facing, float angularVelocity, boolean skipWeapons)
+    public BackgroundEntity GenerateShip(int layerIndex, ShipVariantAPI shipVariant, float xPos, float yPos, float facing, float angularVelocity, boolean skipWeapons, boolean skipDamage)
     {
         ConfigCache cache = ConfigCache.GetInstance();
 
@@ -505,6 +494,12 @@ public class BackgroundShipSpawner
         // Base Ship
         BackgroundEntity ship = new BackgroundEntity(hullSpec.getSpriteName(), new Vector2f(xPos, yPos), hullData.centerX, hullData.centerY, facing, angularVelocity);
         layer.AddEntity(ship);
+
+        if(!skipDamage)
+        {
+            ApplySurfaceDamage(ship, hullSpec);
+            //ApplyMajorDamage(layerIndex, ship, hullSpec);
+        }
 
         List<String> moduleSlots = shipVariant.getModuleSlots();
 
@@ -558,7 +553,15 @@ public class BackgroundShipSpawner
             if((!baseHasVastBulk && CheckForBuiltInMod(moduleHullSpec, "vastbulk")) || CheckForBuiltInMod(moduleHullSpec, "never_detaches"))
                 ship.AddUnderSprite(moduleHullSpec.getSpriteName(), slotPos, direction, moduleCenter);
             else
-                ship.AddChildSprite(moduleHullSpec.getSpriteName(), slotPos, direction, moduleCenter);
+            {
+                BackgroundEntity.BackgroundEntityChild sprite = ship.AddChildSprite(moduleHullSpec.getSpriteName(), slotPos, direction, moduleCenter);
+
+                if(!skipDamage)
+                {
+                    ApplySurfaceDamage(ship, moduleHullSpec, sprite.GetSpriteSize(), slotPos.x, slotPos.y, direction);
+                    //ApplyMajorDamage(layerIndex, ship, hullSpec);
+                }
+            }
 
             // Add module's weapons sprites
             AddWeapons(moduleVariant, skipWeapons, moduleHullSpec, ship, moduleStyleData, weaponOffset.x, weaponOffset.y, direction);

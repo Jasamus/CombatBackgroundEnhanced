@@ -111,6 +111,11 @@ public class BackgroundEntity
             this.facing = facing;
         }
 
+        public Vector2f GetSpriteSize()
+        {
+            return new Vector2f(sprite.getWidth(), sprite.getHeight());
+        }
+
         public void SetTint(Color color)
         {
             sprite.setColor(color);
@@ -181,32 +186,40 @@ public class BackgroundEntity
         sprite.setCenter(sprite.getCenterX() * scale,sprite.getCenterY() * scale);
     }
 
-    public void AddUnderSprite(String spriteName, Vector2f offset, float facing,Vector2f center)
+    public BackgroundEntityChild AddUnderSprite(String spriteName, Vector2f offset, float facing,Vector2f center)
     {
         BackgroundEntityChild under = new BackgroundEntityChild(spriteName, offset, sizeScale, facing, center);
         under.SetTint(color);
         underEntities.add(under);
+
+        return under;
     }
 
-    public void AddChildSprite(String spriteName, Vector2f offset, float facing)
+    public BackgroundEntityChild AddChildSprite(String spriteName, Vector2f offset, float facing)
     {
         BackgroundEntityChild child = new BackgroundEntityChild(spriteName, offset, sizeScale, facing);
         child.SetTint(color);
         childEntities.add(child);
+
+        return child;
     }
 
-    public void AddChildSprite(String spriteName, Vector2f offset, float facing, Vector2f center)
+    public BackgroundEntityChild AddChildSprite(String spriteName, Vector2f offset, float facing, Vector2f center)
     {
         BackgroundEntityChild child = new BackgroundEntityChild(spriteName, offset, sizeScale, facing, center);
         child.SetTint(color);
         childEntities.add(child);
+
+        return child;
     }
 
-    public void AddChildSprite(String spriteName, Vector2f offset, float facing, float centerXPercent, float centerYPercent)
+    public BackgroundEntityChild AddChildSprite(String spriteName, Vector2f offset, float facing, float centerXPercent, float centerYPercent)
     {
         BackgroundEntityChild child = new BackgroundEntityChild(spriteName, offset, sizeScale, facing, centerXPercent, centerYPercent);
         child.SetTint(color);
         childEntities.add(child);
+
+        return child;
     }
 
     public void AddOverlaySprite(String spriteName, Vector2f offset, float facing)
