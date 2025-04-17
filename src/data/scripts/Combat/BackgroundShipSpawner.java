@@ -554,6 +554,11 @@ public class BackgroundShipSpawner
     //********************************************************************
     // Ships
 
+    final float MODULE_DETACH_CHANCE = 0.3f;
+    final float MODULE_MIN_OFFSET = 50.f;
+    final float MODULE_MAX_OFFSET = 100.f;
+    final float MODULE_ROT_OFFSET = 25.f;
+
     // Variant that generates all mounted weapons and mount covers.
     public BackgroundEntity GenerateShip(int layerIndex, ShipVariantAPI shipVariant, float xPos, float yPos, float facing, float angularVelocity, boolean skipWeapons, boolean skipDamage)
     {
@@ -630,23 +635,52 @@ public class BackgroundShipSpawner
                 Vector2f.sub(slotPos, moduleAnchor, slotPos);
             }
 
-            // Add module sprite
-            // If it has the "vastbulk" or "never_detaches" built in modules, render it underneath the main sprite.
-            if((!baseHasVastBulk && CheckForBuiltInMod(moduleHullSpec, "vastbulk")) || CheckForBuiltInMod(moduleHullSpec, "never_detaches"))
-                ship.AddUnderSprite(moduleHullSpec.getSpriteName(), slotPos, direction, moduleCenter);
+            boolean neverDetaches = CheckForBuiltInMod(moduleHullSpec, "never_detaches");
+
+            // Generate a broken off chunk of the module
+            if(!neverDetaches && ran.nextFloat() < MODULE_DETACH_CHANCE)
+            {
+                // Move the module away using its slot position as the direction
+                Vector2f moduleOffset = new Vector2f(slotPos);
+                if(moduleOffset.x != 0f && moduleOffset.y != 0f)
+                {
+                    moduleOffset.normalise();
+                    GenMath.VecRotate(moduleOffset, facing);
+                    moduleOffset.scale(GenMath.Lerp(MODULE_MIN_OFFSET, MODULE_MAX_OFFSET, ran.nextFloat()));
+                }
+
+                // Slight offset for the facing
+                float randomFacing = GenMath.Lerp(-MODULE_ROT_OFFSET, MODULE_ROT_OFFSET, ran.nextFloat());
+
+                // Split out into a unique call for GenerateShip using new settings
+                GenerateShip(layerIndex, moduleVariant,
+                        xPos + slotPos.x + moduleOffset.x,
+                        yPos + slotPos.y + moduleOffset.y,
+                        facing + direction + randomFacing,
+                        angularVelocity, skipWeapons, skipDamage);
+            }
+            // Generate attached module
             else
             {
-                BackgroundEntity.BackgroundEntityChild sprite = ship.AddChildSprite(moduleHullSpec.getSpriteName(), slotPos, direction, moduleCenter);
-
-                if(!skipDamage)
+                // Add module sprite
+                // If it has the "vastbulk" or "never_detaches" built in modules, render it underneath the main sprite.
+                if((!baseHasVastBulk && CheckForBuiltInMod(moduleHullSpec, "vastbulk")) || neverDetaches)
+                    ship.AddUnderSprite(moduleHullSpec.getSpriteName(), slotPos, direction, moduleCenter);
+                else
                 {
-                    ApplySurfaceDamage(ship, moduleHullSpec, sprite.GetSpriteSize(), slotPos.x, slotPos.y, direction);
-                    //ApplyMajorDamage(layerIndex, ship, hullSpec);
+                    BackgroundEntity.BackgroundEntityChild sprite = ship.AddChildSprite(moduleHullSpec.getSpriteName(), slotPos, direction, moduleCenter);
+
+                    if(!skipDamage)
+                    {
+                        ApplySurfaceDamage(ship, moduleHullSpec, sprite.GetSpriteSize(), slotPos.x, slotPos.y, direction);
+                        //ApplyMajorDamage(layerIndex, ship, hullSpec);
+                    }
                 }
+
+                // Add module's weapons sprites
+                AddWeapons(moduleVariant, skipWeapons, moduleHullSpec, ship, moduleStyleData, weaponOffset.x, weaponOffset.y, direction);
             }
 
-            // Add module's weapons sprites
-            AddWeapons(moduleVariant, skipWeapons, moduleHullSpec, ship, moduleStyleData, weaponOffset.x, weaponOffset.y, direction);
         }
 
         // Add Weapons. Do this after modules to make sure these weapons render on top of the module ship sprites.
