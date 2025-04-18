@@ -30,6 +30,8 @@ public class CombatBackgroundTerrain extends BaseEveryFrameCombatPlugin
 
     private float elapsedTime = 0f;
 
+    List<ShipVariantAPI> spawnedStations = new ArrayList<>();
+
     @Override
     public void init(CombatEngineAPI engine)
     {
@@ -67,13 +69,20 @@ public class CombatBackgroundTerrain extends BaseEveryFrameCombatPlugin
         //System.out.println("!! Map Width: " + mapWidth + ", Map Height: " + mapHeight);
 
 //        ShipVariantAPI variant1 = Global.getSettings().getVariant("swp_cathedral_for");
-//        shipSpawner.GenerateHulk(0,variant1, 000f, 0f, ran.nextFloat() * 360f, 10f, false);
+//        shipSpawner.GenerateHulk(1,variant1, 000f, -1200f, ran.nextFloat(), 0f, false);
 //
 //        ShipVariantAPI variant2 = Global.getSettings().getVariant("onslaught_mk1_Ancient");
-//        shipSpawner.GenerateHulk(0,variant2, 800f, 0f, ran.nextFloat() * 360f, 0f, false);
+//        shipSpawner.GenerateHulk(1,variant2, 800f, -1200f, ran.nextFloat(), 0f, false);
+////
 //
-//        ShipVariantAPI variant3 = Global.getSettings().getVariant("station3_hightech_Standard");
-//        shipSpawner.GenerateHulk(0,variant3, -800f, 0f, ran.nextFloat() * 360f, 0f, false);
+//        ShipVariantAPI variant3 = Global.getSettings().getVariant("station3_midline_Standard");
+//        shipSpawner.GenerateHulk(1,variant3, 1200f, 0f, ran.nextFloat(), 0f, false);
+//
+//        ShipVariantAPI variant4 = Global.getSettings().getVariant("station3_hightech_Standard");
+//        shipSpawner.GenerateHulk(1,variant4, 0f, 0f, ran.nextFloat(), 0f, false);
+//
+//        ShipVariantAPI variant5 = Global.getSettings().getVariant("station3_Standard");
+//        shipSpawner.GenerateHulk(1,variant5, -1200f, 0f, ran.nextFloat(), 0f, false);
 
 //        ShipVariantAPI variant2 = Global.getSettings().getVariant("buffalo2_Fighter_Support");
 //        shipSpawner.GenerateHulk(0,variant2, 0f, 0f, 0f, 0f, false);
@@ -126,6 +135,7 @@ public class CombatBackgroundTerrain extends BaseEveryFrameCombatPlugin
     final int SPAWN_FLEET_BASE_SIZE = 60;
     final int SPAWN_FLEET_VARIABLE_SIZE = 240;
     final double SPAWN_FLEET_SIZE_BIAS = 1.35;
+    final float SPAWN_STATION_CHANCE = 0.08f;
     void SpawnAmbientFleet(float xPos, float yPos)
     {
         List<FactionAPI> nearbyFactions = terrainAnalyzer.GetNearbyFactions();
@@ -138,7 +148,16 @@ public class CombatBackgroundTerrain extends BaseEveryFrameCombatPlugin
         int fleetSize = (int)(SPAWN_FLEET_VARIABLE_SIZE * randSizeScaled) + SPAWN_FLEET_BASE_SIZE;
         //System.out.println("!! Fleet size: " + randSize + ", size Scaled: " + randSizeScaled + ", DP: " + fleetSize);
 
-        fleetSpawner.SpawnHulkField(selectedFaction, fleetSize, xPos, yPos);
+        // If the faction has a station system, small chance of spawning a hulk of the same station.
+        ShipVariantAPI stationVariant = terrainAnalyzer.GetNearbyStationForFaction(selectedFaction);
+        if(stationVariant != null && !spawnedStations.contains(stationVariant) && ran.nextFloat() < SPAWN_STATION_CHANCE)
+        {
+            shipSpawner.GenerateHulk(ran.nextInt(5), stationVariant, xPos, yPos, GenMath.RandFacing(), 0f, false);
+            // Prevent a station type from spawning multiple times
+            spawnedStations.add(stationVariant);
+        }
+        else
+            fleetSpawner.SpawnHulkField(selectedFaction, fleetSize, xPos, yPos);
     }
 
     void SpawnAmbientAsteroidField(float xPos, float yPos)

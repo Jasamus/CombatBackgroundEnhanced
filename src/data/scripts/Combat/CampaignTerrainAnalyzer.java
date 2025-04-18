@@ -2,17 +2,9 @@ package data.scripts.Combat;
 
 import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.campaign.*;
-//import com.fs.starfarer.api.characters.PersonAPI;
-//import com.fs.starfarer.api.combat.CombatFleetManagerAPI;
-//import com.fs.starfarer.api.combat.ShipAPI;
-//import com.fs.starfarer.api.combat.ShipVariantAPI;
-//import com.fs.starfarer.api.fleet.FleetMemberAPI;
-//import com.fs.starfarer.api.impl.campaign.DerelictShipEntityPlugin;
-//import com.fs.starfarer.api.impl.campaign.terrain.AsteroidBeltTerrainPlugin;
-//import com.fs.starfarer.api.impl.campaign.terrain.AsteroidFieldTerrainPlugin;
-//import com.fs.starfarer.api.impl.campaign.terrain.DebrisFieldTerrainPlugin;
-//import com.fs.starfarer.api.impl.campaign.terrain.RingSystemTerrainPlugin;
-//import com.fs.starfarer.api.mission.FleetSide;
+import com.fs.starfarer.api.combat.ShipHullSpecAPI;
+import com.fs.starfarer.api.combat.ShipVariantAPI;
+import com.fs.starfarer.api.fleet.FleetMemberAPI;
 import com.fs.starfarer.api.util.Misc;
 import org.lwjgl.util.vector.Vector2f;
 
@@ -251,6 +243,41 @@ public class CampaignTerrainAnalyzer
                 inSystemFactions.add(faction);
             }
         }
+    }
+
+    public ShipVariantAPI GetNearbyStationForFaction(FactionAPI faction)
+    {
+        LocationAPI currentLocation = Global.getSector().getCurrentLocation();
+        List<CampaignFleetAPI> fleets = currentLocation.getFleets();
+        for( CampaignFleetAPI fleet : fleets)
+        {
+            // Skip player fleet
+            if(fleet.isPlayerFleet())
+                continue;
+
+            if(!fleet.isStationMode())
+                continue;
+
+            FactionAPI fleetFaction = fleet.getFaction();
+            if(fleetFaction == faction)
+            {
+                FleetDataAPI fleetData = fleet.getFleetData();
+                List<FleetMemberAPI> membersListCopy = fleetData.getMembersListCopy();
+                for(FleetMemberAPI fleetMember : membersListCopy)
+                {
+                    ShipVariantAPI variant = fleetMember.getVariant();
+                    ShipHullSpecAPI hullSpec = variant.getHullSpec();
+                    if(!hullSpec.isBaseHull())
+                        hullSpec = hullSpec.getBaseHull();
+
+                    // Most stations use the hint STATION. There are some cases of stations that don't so they will end up being missed but I've not found any reliable way of telling if a ship is a station or not.
+                    if(hullSpec.getHints().contains(ShipHullSpecAPI.ShipTypeHints.STATION))
+                        return variant;
+                }
+            }
+        }
+
+        return null;
     }
 
 //    // NOTE: Won't create accurate results on the first frame of combat.
