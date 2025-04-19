@@ -557,6 +557,8 @@ public class BackgroundShipSpawner
     final float MODULE_DETACH_CHANCE = 0.3f;
     final float MODULE_MIN_OFFSET = 50.f;
     final float MODULE_MAX_OFFSET = 100.f;
+    final float MODULE_MIN_RANDOM_OFFSET = 5.f;
+    final float MODULE_MAX_RANDOM_OFFSET = 25.f;
     final float MODULE_ROT_OFFSET = 25.f;
 
     // Variant that generates all mounted weapons and mount covers.
@@ -620,48 +622,63 @@ public class BackgroundShipSpawner
                 direction += anchorRotationFacing;
             }
 
-            Vector2f moduleCenter = new Vector2f(moduleHullData.centerX, moduleHullData.centerY);
-            Vector2f weaponOffset = new Vector2f(moduleSlot.getLocation());
-
-            // If there is a module anchor offset, apply it.
-            if(moduleHullSpec.getModuleAnchor() != null)
-            {
-                Vector2f moduleAnchor = new Vector2f(moduleHullSpec.getModuleAnchor());
-                GenMath.VecRotate(moduleAnchor, direction);
-
-                Vector2f.sub(weaponOffset, moduleAnchor, weaponOffset);
-
-                GenMath.VecRotate(moduleAnchor, 90f);
-                Vector2f.sub(slotPos, moduleAnchor, slotPos);
-            }
-
             boolean neverDetaches = CheckForBuiltInMod(moduleHullSpec, "never_detaches");
 
             // Generate a broken off chunk of the module
-            if(!neverDetaches && ran.nextFloat() < MODULE_DETACH_CHANCE)
+            if(!neverDetaches && GenMath.IsTrue(MODULE_DETACH_CHANCE))
             {
+                Vector2f brokenOffset = new Vector2f(moduleSlot.getLocation());
+                GenMath.VecRotate(brokenOffset, 90f + facing);
+
+                if(moduleHullSpec.getModuleAnchor() != null)
+                {
+                    Vector2f moduleAnchor = new Vector2f(moduleHullSpec.getModuleAnchor());
+                    GenMath.VecRotate(moduleAnchor, direction + facing + 90f);
+
+                    Vector2f.sub(brokenOffset, moduleAnchor, brokenOffset);
+                }
+
                 // Move the module away using its slot position as the direction
                 Vector2f moduleOffset = new Vector2f(slotPos);
                 if(moduleOffset.x != 0f && moduleOffset.y != 0f)
                 {
                     moduleOffset.normalise();
                     GenMath.VecRotate(moduleOffset, facing);
-                    moduleOffset.scale(GenMath.Lerp(MODULE_MIN_OFFSET, MODULE_MAX_OFFSET, ran.nextFloat()));
+                    moduleOffset.scale(GenMath.LerpRand(MODULE_MIN_OFFSET, MODULE_MAX_OFFSET));
                 }
+
+                Vector2f randomOffset = GenMath.RandDir();
+                randomOffset.scale(GenMath.LerpRand(MODULE_MIN_RANDOM_OFFSET, MODULE_MAX_RANDOM_OFFSET));
+                Vector2f.add(moduleOffset, randomOffset, moduleOffset);
 
                 // Slight offset for the facing
                 float randomFacing = GenMath.Lerp(-MODULE_ROT_OFFSET, MODULE_ROT_OFFSET, ran.nextFloat());
 
                 // Split out into a unique call for GenerateShip using new settings
                 GenerateShip(layerIndex, moduleVariant,
-                        xPos + slotPos.x + moduleOffset.x,
-                        yPos + slotPos.y + moduleOffset.y,
+                        xPos + brokenOffset.x + moduleOffset.x,
+                        yPos + brokenOffset.y + moduleOffset.y,
                         facing + direction + randomFacing,
                         angularVelocity, skipWeapons, skipDamage);
             }
             // Generate attached module
             else
             {
+                Vector2f moduleCenter = new Vector2f(moduleHullData.centerX, moduleHullData.centerY);
+                Vector2f weaponOffset = new Vector2f(moduleSlot.getLocation());
+
+                // If there is a module anchor offset, apply it.
+                if(moduleHullSpec.getModuleAnchor() != null)
+                {
+                    Vector2f moduleAnchor = new Vector2f(moduleHullSpec.getModuleAnchor());
+                    GenMath.VecRotate(moduleAnchor, direction);
+
+                    Vector2f.sub(weaponOffset, moduleAnchor, weaponOffset);
+
+                    GenMath.VecRotate(moduleAnchor, 90f);
+                    Vector2f.sub(slotPos, moduleAnchor, slotPos);
+                }
+
                 // Add module sprite
                 // If it has the "vastbulk" or "never_detaches" built in modules, render it underneath the main sprite.
                 if((!baseHasVastBulk && CheckForBuiltInMod(moduleHullSpec, "vastbulk")) || neverDetaches)
