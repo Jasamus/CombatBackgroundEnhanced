@@ -69,20 +69,20 @@ public class CombatBackgroundTerrain extends BaseEveryFrameCombatPlugin
         //System.out.println("!! Map Width: " + mapWidth + ", Map Height: " + mapHeight);
 
 //        ShipVariantAPI variant1 = Global.getSettings().getVariant("swp_cathedral_for");
-//        shipSpawner.GenerateHulk(1,variant1, 000f, -1200f, ran.nextFloat(), 0f, false);
+//        shipSpawner.GenerateHulk(1,variant1, 000f, -1200f, ran.nextFloat() * 360f, 0f, false);
 //
 //        ShipVariantAPI variant2 = Global.getSettings().getVariant("onslaught_mk1_Ancient");
-//        shipSpawner.GenerateHulk(1,variant2, 800f, -1200f, ran.nextFloat(), 0f, false);
+//        shipSpawner.GenerateHulk(1,variant2, 800f, -1200f, ran.nextFloat() * 360f, 0f, false);
 ////
 //
 //        ShipVariantAPI variant3 = Global.getSettings().getVariant("station3_midline_Standard");
-//        shipSpawner.GenerateHulk(1,variant3, 1200f, 0f, ran.nextFloat(), 0f, false);
+//        shipSpawner.GenerateHulk(3,variant3, 1200f, 0f, ran.nextFloat() * 360f, 0f, false);
 //
 //        ShipVariantAPI variant4 = Global.getSettings().getVariant("station3_hightech_Standard");
-//        shipSpawner.GenerateHulk(1,variant4, 0f, 0f, ran.nextFloat(), 0f, false);
+//        shipSpawner.GenerateHulk(1,variant4, 0f, 0f, ran.nextFloat() * 360f, 0f, false);
 //
 //        ShipVariantAPI variant5 = Global.getSettings().getVariant("station3_Standard");
-//        shipSpawner.GenerateHulk(1,variant5, -1200f, 0f, ran.nextFloat(), 0f, false);
+//        shipSpawner.GenerateHulk(1,variant5, -1200f, 0f, ran.nextFloat() * 360f, 0f, false);
 
 //        ShipVariantAPI variant2 = Global.getSettings().getVariant("buffalo2_Fighter_Support");
 //        shipSpawner.GenerateHulk(0,variant2, 0f, 0f, 0f, 0f, false);
