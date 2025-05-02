@@ -745,7 +745,7 @@ public class BackgroundShipSpawner
             float slotAngle = slot.getAngle() + rotationOffset;
 
             // Empty slot, add a cover for it.
-            if(skipWeapons || (!slot.isBuiltIn() && !fittedWeaponSlots.contains(slotId)))
+            if(skipWeapons || (!slot.isBuiltIn() && !fittedWeaponSlots.contains(slotId)) || weaponSpec == null)
             {
                 if(slot.isHardpoint())
                     ship.AddChildSprite(hullStyleData.GetHardpointcover(slot.getSlotSize()), slotPos, slotAngle, 0.5f,0.25f);
